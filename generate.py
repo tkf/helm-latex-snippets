@@ -61,6 +61,12 @@ def load_data_math(name):
 
 
 def generate_image_math(package):
+    """
+    Generate mathematical symbol images.
+
+    Generated images will be in ``build/math/{package}/``.
+
+    """
     names = load_data_math(package)
     texts = map("$\\{0}$".format, names)
     paths = [os.path.join("build", "math", package, "{0}.png".format(n))
