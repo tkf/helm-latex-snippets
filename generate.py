@@ -60,8 +60,7 @@ def load_data_math(name):
         return map(str.strip, f.readlines())
 
 
-def generate_image_math():
-    package = 'latex2e'
+def generate_image_math(package):
     names = load_data_math(package)
     texts = map("$\\{0}$".format, names)
     paths = [os.path.join("build", "math", package, "{0}.png".format(n))
@@ -81,7 +80,9 @@ def main(args=None):
 
     # math
     parser_math = make_subparser('math', generate_image_math)
-    parser_math
+    parser_math.add_argument(
+        '--package', default='latex2e',
+        help='Generate images for data stored in data/math/PACKAGE')
 
     def applyargs(func, **kwds):
         return func(**kwds)
