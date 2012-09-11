@@ -11,6 +11,7 @@ def mkdirp(p):
 
 
 def latex_to_pngs(texts, paths, **kwds):
+    assert len(texts) == len(paths)
     try:
         workdir = tempfile.mkdtemp()
         tmpfile = os.path.join(workdir, "tmp.tex")
@@ -31,6 +32,7 @@ def latex_to_pngs(texts, paths, **kwds):
                 stdout=devnull, stderr=devnull)
 
         outlist = sorted(glob(os.path.join(workdir, "tmp-*.png")))
+        assert len(outlist) == len(paths)
         for (src, dest) in zip(outlist, paths):
             mkdirp(os.path.dirname(dest))
             shutil.move(src, dest)
