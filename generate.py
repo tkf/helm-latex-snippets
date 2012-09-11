@@ -101,7 +101,7 @@ def generate_image_math(package):
     texts = map("$\\{0}$".format, names)
     paths = [os.path.join("build", "math", package, "{0}.png".format(n))
              for n in names]
-    latex_to_pngs(texts, paths, (20, 20))
+    latex_to_pngs(texts, paths, (20, 20), packages=[package])
 
 
 def main(args=None):
