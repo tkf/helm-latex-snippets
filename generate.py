@@ -15,7 +15,7 @@ def mkdirp(p):
         os.makedirs(p)
 
 
-def latex_to_pngs(texts, paths, **kwds):
+def latex_to_pngs(texts, paths, resize=None, **kwds):
     """
     Generate images from latex `texts`.
 
@@ -47,8 +47,17 @@ def latex_to_pngs(texts, paths, **kwds):
         assert len(outlist) == len(paths)
         map(mkdirp, set(map(os.path.dirname, paths)))
 
-        for (src, dest) in zip(outlist, paths):
-            shutil.move(src, dest)
+        if resize:
+            with open(os.devnull, 'w') as devnull:
+                for (src, dest) in zip(outlist, paths):
+                    subprocess.check_call(
+                        ['convert', src,
+                         '-size', '{0}x{1}'.format(*resize),
+                         'xc:white', '+swap', '-gravity', 'center',
+                         '-composite', dest])
+        else:
+            for (src, dest) in zip(outlist, paths):
+                shutil.move(src, dest)
     finally:
         shutil.rmtree(workdir)
 
@@ -92,7 +101,7 @@ def generate_image_math(package):
     texts = map("$\\{0}$".format, names)
     paths = [os.path.join("build", "math", package, "{0}.png".format(n))
              for n in names]
-    latex_to_pngs(texts, paths)
+    latex_to_pngs(texts, paths, (15, 15))
 
 
 def main(args=None):
