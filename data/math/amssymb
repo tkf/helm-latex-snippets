@@ -1,6 +1,15 @@
+backprime
 because
+bigstar
+blacklozenge
+blacksquare
+blacktriangle
+blacktriangledown
+diagdown
+diagup
 eqslantgtr
 eqslantless
+eth
 geqq
 geqslant
 ggg
@@ -28,7 +37,9 @@ lnapprox
 lneq
 lneqq
 lnsim
+lozenge
 lvertneqq
+measuredangle
 ngeq
 ngeqq
 ngeqslant
@@ -37,4 +48,9 @@ nleq
 nleqq
 nleqslant
 nless
+sphericalangle
+square
 therefore
+triangledown
+varnothing
+vartriangle
