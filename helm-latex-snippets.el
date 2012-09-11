@@ -74,6 +74,12 @@
     (anything-other-buffer hls--math-source
                            "*anything latex snippets math*")))
 
+(defun helm-latex-snippets-math ()
+  (interactive)
+  (let ((hls-candidate-buffer #'helm-candidate-buffer))
+    (helm-other-buffer hls--math-source
+                       "*helm latex snippets math*")))
+
 (provide 'helm-latex-snippets)
 
 ;;; helm-latex-snippets.el ends here
