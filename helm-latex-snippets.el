@@ -37,10 +37,15 @@
       default-directory)
   "Directory in which ``helm-latex-snippets.el`` locate.")
 
+(defun hls--find-images (base-dir)
+  (loop for d in (directory-files
+                  (expand-file-name base-dir hls--source-dir)
+                  t)
+        when (file-directory-p d)
+        append (directory-files d t ".png$")))
+
 (defun hls--insert-lines-math ()
-  (loop for f in (directory-files
-                  (expand-file-name "build/math/latex2e/" hls--source-dir)
-                  t ".png$")
+  (loop for f in (hls--find-images "build/math")
         for name = (file-name-sans-extension (file-name-nondirectory f))
         do (insert-image (create-image f))
         do (insert "\\" name "\n")))
