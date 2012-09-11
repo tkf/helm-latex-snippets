@@ -90,18 +90,26 @@ def load_data_math(name):
         return map(str.strip, f.readlines())
 
 
-def generate_image_math(package):
+def generate_image_math(packages):
     """
     Generate mathematical symbol images.
 
     Generated images will be in ``build/math/{package}/``.
 
     """
+    if not packages:
+        packages = filter(lambda x: not x.endswith('~'),
+                          os.listdir(os.path.join('data', 'math')))
+    map(generate_image_math_package, packages)
+
+
+def generate_image_math_package(package):
     names = load_data_math(package)
     texts = map("$\\{0}$".format, names)
     paths = [os.path.join("build", "math", package, "{0}.png".format(n))
              for n in names]
-    latex_to_pngs(texts, paths, (50, 25), packages=[package])
+    latex_to_pngs(texts, paths, (50, 25),
+                  packages=[package] if package != 'latex2e' else [])
 
 
 def main(args=None):
@@ -117,7 +125,7 @@ def main(args=None):
     # math
     parser_math = make_subparser('math', generate_image_math)
     parser_math.add_argument(
-        '--package', default='latex2e',
+        '--package', dest='packages', default=[], action='append',
         help='Generate images for data stored in data/math/PACKAGE')
 
     def applyargs(func, **kwds):
