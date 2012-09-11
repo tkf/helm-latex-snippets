@@ -1,3 +1,7 @@
+"""
+Generate images from latex data stored in ``data/*``.
+"""
+
 import os
 import tempfile
 import shutil
@@ -6,11 +10,19 @@ import subprocess
 
 
 def mkdirp(p):
+    """Do ``mkdir -p``"""
     if not os.path.isdir(p):
         os.makedirs(p)
 
 
 def latex_to_pngs(texts, paths, **kwds):
+    """
+    Generate images from latex `texts`.
+
+    For each latex text in `texts` generate an image and copy it
+    to the path (of the same index) in `paths`.
+
+    """
     assert len(texts) == len(paths)
     try:
         workdir = tempfile.mkdtemp()
@@ -41,7 +53,12 @@ def latex_to_pngs(texts, paths, **kwds):
 
 
 def genelatex(strings, packages=[], preamble=None):
-    """Generate LaTeX document."""
+    """
+    Generate LaTeX document.
+
+    Each string in `strings` will make a page.
+
+    """
     yield r'\documentclass{article}'
     for pack in packages:
         yield r'\usepackage{{{0}}}'.format(pack)
@@ -58,6 +75,7 @@ def genelatex(strings, packages=[], preamble=None):
 
 
 def load_data_math(name):
+    """Load data from ``data/math/{name}``."""
     with open(os.path.join("data", "math", name)) as f:
         return map(str.strip, f.readlines())
 
