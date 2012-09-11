@@ -45,8 +45,9 @@ def latex_to_pngs(texts, paths, **kwds):
 
         outlist = sorted(glob(os.path.join(workdir, "tmp-*.png")))
         assert len(outlist) == len(paths)
+        map(mkdirp, set(map(os.path.dirname, paths)))
+
         for (src, dest) in zip(outlist, paths):
-            mkdirp(os.path.dirname(dest))
             shutil.move(src, dest)
     finally:
         shutil.rmtree(workdir)
