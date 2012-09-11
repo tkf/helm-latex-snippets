@@ -15,6 +15,18 @@ def mkdirp(p):
         os.makedirs(p)
 
 
+def check_call_error_message(cmd, *args, **kwds):
+    proc = subprocess.Popen(
+        cmd, *args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwds)
+    (stdout, _) = proc.communicate()
+    retcode = proc.returncode
+    if retcode != 0:
+        print "*" * 50
+        print stdout,
+        print "*" * 50
+        raise subprocess.CalledProcessError(retcode, cmd)
+
+
 def latex_to_pngs(texts, paths, resize=None, **kwds):
     """
     Generate images from latex `texts`.
@@ -33,28 +45,26 @@ def latex_to_pngs(texts, paths, resize=None, **kwds):
         with open(tmpfile, "w") as f:
             f.writelines(genelatex(texts, **kwds))
 
-        with open(os.devnull, 'w') as devnull:
-            subprocess.check_call(
-                ["latex", "-halt-on-error", tmpfile],
-                cwd=workdir, stdout=devnull, stderr=devnull)
+        check_call_error_message(
+            ["latex", "-halt-on-error", tmpfile],
+            cwd=workdir)
 
-            subprocess.check_call(
-                ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
-                 "-bg", "transparent", "-o", outfile, dvifile],
-                cwd=workdir, stdout=devnull, stderr=devnull)
+        check_call_error_message(
+            ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
+             "-bg", "transparent", "-o", outfile, dvifile],
+            cwd=workdir)
 
         outlist = sorted(glob(os.path.join(workdir, "tmp-*.png")))
         assert len(outlist) == len(paths)
         map(mkdirp, set(map(os.path.dirname, paths)))
 
         if resize:
-            with open(os.devnull, 'w') as devnull:
-                for (src, dest) in zip(outlist, paths):
-                    subprocess.check_call(
-                        ['convert', src,
-                         '-size', '{0}x{1}'.format(*resize),
-                         'xc:white', '+swap', '-gravity', 'center',
-                         '-composite', dest])
+            for (src, dest) in zip(outlist, paths):
+                check_call_error_message(
+                    ['convert', src,
+                     '-size', '{0}x{1}'.format(*resize),
+                     'xc:white', '+swap', '-gravity', 'center',
+                     '-composite', dest])
         else:
             for (src, dest) in zip(outlist, paths):
                 shutil.move(src, dest)
