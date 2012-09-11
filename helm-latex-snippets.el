@@ -72,12 +72,14 @@
     (action . insert)))
 
 (defun anything-latex-snippets-math ()
+  "Search latex math symbols."
   (interactive)
   (let ((hls-candidate-buffer #'anything-candidate-buffer))
     (anything-other-buffer hls--math-source
                            "*anything latex snippets math*")))
 
 (defun helm-latex-snippets-math ()
+  "Search latex math symbols."
   (interactive)
   (let ((hls-candidate-buffer #'helm-candidate-buffer))
     (helm-other-buffer hls--math-source
@@ -87,6 +89,7 @@
 ;;; Builder
 
 (defun hls-build-math ()
+  "Generate math symbol images."
   (interactive)
   (let ((default-directory hls--source-dir))
     (compile "python generate.py math")))
