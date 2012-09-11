@@ -55,6 +55,9 @@
       #'helm-candidate-buffer
     #'anything-candidate-buffer))
 
+
+;;; Math symbols source
+
 (defun hls--math-init ()
   (with-current-buffer (funcall hls-candidate-buffer 'global)
     (erase-buffer)
@@ -79,6 +82,14 @@
   (let ((hls-candidate-buffer #'helm-candidate-buffer))
     (helm-other-buffer hls--math-source
                        "*helm latex snippets math*")))
+
+
+;;; Builder
+
+(defun hls-build-math ()
+  (interactive)
+  (let ((default-directory hls--source-dir))
+    (compile "python generate.py math")))
 
 (provide 'helm-latex-snippets)
 
