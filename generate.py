@@ -109,8 +109,7 @@ def generate_image_math_package(package):
         shutil.rmtree(basepath)
     names = load_data_math(package)
     texts = map("$\\{0}$".format, names)
-    paths = [os.path.join(basepath, "{0}.png".format(n))
-             for n in names]
+    paths = [os.path.join(basepath, "{0}.png".format(n)) for n in names]
     latex_to_pngs(texts, paths, (50, 25),
                   packages=[package] if package != 'latex2e' else [])
 
