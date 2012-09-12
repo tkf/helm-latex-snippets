@@ -71,6 +71,7 @@
     (display-to-real . (lambda (c) (substring c 1)))
     (action . insert)))
 
+;;;###autoload
 (defun anything-latex-snippets-math ()
   "Search latex math symbols."
   (interactive)
@@ -78,6 +79,7 @@
     (anything-other-buffer hls--math-source
                            "*anything latex snippets math*")))
 
+;;;###autoload
 (defun helm-latex-snippets-math ()
   "Search latex math symbols."
   (interactive)
@@ -88,6 +90,7 @@
 
 ;;; Builder
 
+;;;###autoload
 (defun hls-build-math ()
   "Generate math symbol images."
   (interactive)
