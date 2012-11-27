@@ -122,6 +122,9 @@ def load_preamble(directory):
     if os.path.isfile(p):
         with open(p) as f:
             return f.read()
+    parent = os.path.dirname(directory)
+    if parent != directory:
+        return load_preamble(parent)
 
 
 def load_data(directory):
