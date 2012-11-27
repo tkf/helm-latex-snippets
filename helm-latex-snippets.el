@@ -56,11 +56,11 @@
   "Directory in which ``helm-latex-snippets.el`` locate.")
 
 (defun hls--find-images (base-dir)
-  (loop for d in (directory-files
-                  (expand-file-name base-dir hls--source-dir)
-                  t)
-        when (file-directory-p d)
-        append (directory-files d t ".png$")))
+  "Find all png files under `hls--source-dir'/BASE-DIR."
+  (loop for f in (hls--directory-files-recursively
+                  (expand-file-name base-dir hls--source-dir))
+        when (string-match-p ".png\\'" f)
+        collect f))
 
 (defun hls--insert-lines-math ()
   (loop for f in (hls--find-images "build/math")
