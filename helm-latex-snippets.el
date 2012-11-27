@@ -55,18 +55,31 @@
       default-directory)
   "Directory in which ``helm-latex-snippets.el`` locate.")
 
-(defun hls--find-images (base-dir)
-  "Find all png files under `hls--source-dir'/BASE-DIR."
-  (loop for f in (hls--directory-files-recursively
-                  (expand-file-name base-dir hls--source-dir))
+(defun hls--find-images (directory)
+  "Find all png files under DIRECTORY."
+  (loop for f in (hls--directory-files-recursively directory)
         when (string-match-p ".png\\'" f)
         collect f))
 
 (defun hls--insert-lines-math ()
-  (loop for f in (hls--find-images "build/math")
+  "Insert images and search keywords into the current buffer.
+Images are fetched from the directory HLS--SOURCE-DIR/build/math.
+This directory have sub-directories. These sub-directories are
+interpreted as symbol \"category\".  Example::
+
+    build/math/amsmath/iint.png
+                 |         |
+              category   symbol
+"
+  (loop with base-dir = "build/math"
+        with directory = (expand-file-name base-dir hls--source-dir)
+        for f in (hls--find-images directory)
         for name = (file-name-sans-extension (file-name-nondirectory f))
+        for category = (substring
+                        (file-relative-name (file-name-directory f) directory)
+                        0 -1)
         do (insert-image (create-image f))
-        do (insert "\\" name "\n")))
+        do (insert (format " \\%s (%s)\n" name category))))
 
 (defvar hls-candidate-buffer
   (if (locate-library "helm")
