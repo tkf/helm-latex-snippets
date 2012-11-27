@@ -31,6 +31,24 @@
 (declare-function anything-other-buffer "anything")
 (declare-function helm-other-buffer "helm")
 
+
+;;; Utility functions
+
+(defun hls--directory-files-recursively (directory)
+  "List files under DIRECTORY."
+  (setq directory (file-name-as-directory directory))
+  (let ((aspath (lambda (f) (concat directory f))))
+    (loop for f in (directory-files directory)
+          for p = (funcall aspath f)
+          if (or (equal f ".") (equal f ".."))
+          do (ignore)
+          else if (file-directory-p p)
+          append (hls--directory-files-recursively p)
+          else
+          append (list p))))
+
+
+;;;
 
 (defvar hls--source-dir
   (or (and load-file-name (file-name-directory load-file-name))
