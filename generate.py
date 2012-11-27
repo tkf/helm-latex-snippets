@@ -7,12 +7,36 @@ import tempfile
 import shutil
 from glob import glob
 import subprocess
+import functools
+import itertools
+
+
+def memoize(func):
+    cache = {}
+
+    @functools.wraps(func)
+    def wrapper(*args):
+        try:
+            return cache[args]
+        except KeyError:
+            result = cache[args] = func(*args)
+            return result
+    return wrapper
 
 
 def mkdirp(p):
     """Do ``mkdir -p``"""
     if not os.path.isdir(p):
         os.makedirs(p)
+
+
+def list_files(directory):
+    for (dirpath, dirnames, filenames) in os.walk(directory):
+        for d in dirnames:
+            for f in list_files(os.path.join(dirpath, d)):
+                yield f
+        for f in filenames:
+            yield os.path.join(dirpath, f)
 
 
 def check_call_error_message(cmd, *args, **kwds):
@@ -72,7 +96,7 @@ def latex_to_pngs(texts, paths, resize=None, **kwds):
         shutil.rmtree(workdir)
 
 
-def genelatex(strings, packages=[], preamble=None):
+def genelatex(strings, preamble=None):
     """
     Generate LaTeX document.
 
@@ -80,8 +104,6 @@ def genelatex(strings, packages=[], preamble=None):
 
     """
     yield r'\documentclass{article}'
-    for pack in packages:
-        yield r'\usepackage{{{0}}}'.format(pack)
     yield r'\pagestyle{empty}'
     if preamble:
         yield preamble
@@ -94,57 +116,51 @@ def genelatex(strings, packages=[], preamble=None):
     yield r'\end{document}'
 
 
-def load_data_math(name):
-    """Load data from ``data/math/{name}``."""
-    with open(os.path.join("data", "math", name)) as f:
-        return map(str.strip, f.readlines())
+@memoize
+def load_preamble(directory):
+    p = os.path.join(directory, '_preamble_.tex')
+    if os.path.isfile(p):
+        with open(p) as f:
+            return f.read()
 
 
-def generate_image_math(packages):
+def load_data(directory):
+    for tex in filter(lambda x: x.endswith('.tex'), list_files(directory)):
+        preamble = load_preamble(os.path.dirname(tex))
+        noext = os.path.splitext(tex)[0]
+        keyfile = '{0}.keywords'.format(noext)
+        if os.path.basename(noext).startswith('_') and noext.endswith('_'):
+            continue
+        yield {
+            'name': os.path.relpath(noext, directory),
+            'tex': "${0}$".format(open(tex).read()),
+            'keys': open(keyfile).read() if os.path.exists(keyfile) else '',
+            'preamble': preamble,
+        }
+
+
+def generate_images(directory, resize=(50, 25)):
     """
-    Generate mathematical symbol images.
-
-    Generated images will be in ``build/math/{package}/``.
-
+    Generate mathematical symbol images from data in `directory`.
     """
-    if not packages:
-        packages = filter(lambda x: not x.endswith('~'),
-                          os.listdir(os.path.join('data', 'math')))
-    map(generate_image_math_package, packages)
-
-
-def generate_image_math_package(package):
-    basepath = os.path.join("build", "math", package)
-    if os.path.isdir(basepath):
-        shutil.rmtree(basepath)
-    names = load_data_math(package)
-    texts = map("$\\{0}$".format, names)
-    paths = [os.path.join(basepath, "{0}.png".format(n)) for n in names]
-    latex_to_pngs(texts, paths, (50, 25),
-                  packages=[package] if package != 'latex2e' else [])
+    for (key, group) in itertools.groupby(load_data(directory),
+                                          lambda x: x['preamble']):
+        group = list(group)
+        latex_to_pngs(
+            texts=[d['tex'] for d in group],
+            paths=[os.path.join('build', '{0}.png'.format(d['name']))
+                   for d in group],
+            resize=resize,
+            preamble=group[0]['preamble'],
+        )
 
 
 def main(args=None):
     from argparse import ArgumentParser
     parser = ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers()
-
-    def make_subparser(cmd, func):
-        subparser = subparsers.add_parser(cmd, help=func.__doc__)
-        subparser.set_defaults(func=func)
-        return subparser
-
-    # math
-    parser_math = make_subparser('math', generate_image_math)
-    parser_math.add_argument(
-        '--package', dest='packages', default=[], action='append',
-        help='Generate images for data stored in data/math/PACKAGE')
-
-    def applyargs(func, **kwds):
-        return func(**kwds)
-
+    parser.add_argument('directory', nargs='?', default='data')
     ns = parser.parse_args(args)
-    return applyargs(**vars(ns))
+    return generate_images(**vars(ns))
 
 
 if __name__ == '__main__':
