@@ -31,24 +31,62 @@
 (declare-function anything-other-buffer "anything")
 (declare-function helm-other-buffer "helm")
 
+
+;;; Utility functions
+
+(defun hls--directory-files-recursively (directory)
+  "List files under DIRECTORY."
+  (setq directory (file-name-as-directory directory))
+  (let ((aspath (lambda (f) (concat directory f))))
+    (loop for f in (directory-files directory)
+          for p = (funcall aspath f)
+          if (or (equal f ".") (equal f ".."))
+          do (ignore)
+          else if (file-directory-p p)
+          append (hls--directory-files-recursively p)
+          else
+          append (list p))))
+
+
+;;;
 
 (defvar hls--source-dir
   (or (and load-file-name (file-name-directory load-file-name))
       default-directory)
   "Directory in which ``helm-latex-snippets.el`` locate.")
 
-(defun hls--find-images (base-dir)
-  (loop for d in (directory-files
-                  (expand-file-name base-dir hls--source-dir)
-                  t)
-        when (file-directory-p d)
-        append (directory-files d t ".png$")))
+(defun hls--find-images (directory)
+  "Find all png files under DIRECTORY."
+  (loop for f in (hls--directory-files-recursively directory)
+        when (string-match-p ".png\\'" f)
+        collect f))
 
 (defun hls--insert-lines-math ()
-  (loop for f in (hls--find-images "build/math")
+  "Insert images and search keywords into the current buffer.
+Images are fetched from the directory HLS--SOURCE-DIR/build/math.
+This directory have sub-directories. These sub-directories are
+interpreted as symbol \"category\".  Example::
+
+    build/math/amsmath/iint.png
+                 |         |
+              category   symbol
+"
+  (loop with base-dir = "build/math"
+        with directory = (expand-file-name base-dir hls--source-dir)
+        for f in (hls--find-images directory)
         for name = (file-name-sans-extension (file-name-nondirectory f))
+        for category = (substring
+                        (file-relative-name (file-name-directory f) directory)
+                        0 -1)
         do (insert-image (create-image f))
-        do (insert "\\" name "\n")))
+        do (insert (format
+                    "%s \\%s (%s)\n"
+                    ;; Serialize data to pass to display-to-real
+                    ;; (which is `read') into a S-expression and hide
+                    ;; it using text property.
+                    (propertize (format "%S" (format "\\%s" name))
+                                'invisible t)
+                    name category))))
 
 (defvar hls-candidate-buffer
   (if (locate-library "helm")
@@ -68,7 +106,7 @@
     (init . hls--math-init)
     (get-line . buffer-substring) ; default is `buffer-substring-no-properties'
     (candidates-in-buffer)
-    (display-to-real . (lambda (c) (substring c 1)))
+    (display-to-real . read)
     (action . insert)))
 
 ;;;###autoload
