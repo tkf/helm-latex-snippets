@@ -79,7 +79,14 @@ interpreted as symbol \"category\".  Example::
                         (file-relative-name (file-name-directory f) directory)
                         0 -1)
         do (insert-image (create-image f))
-        do (insert (format " \\%s (%s)\n" name category))))
+        do (insert (format
+                    "%s \\%s (%s)\n"
+                    ;; Serialize data to pass to display-to-real
+                    ;; (which is `read') into a S-expression and hide
+                    ;; it using text property.
+                    (propertize (format "%S" (format "\\%s" name))
+                                'invisible t)
+                    name category))))
 
 (defvar hls-candidate-buffer
   (if (locate-library "helm")
@@ -99,7 +106,7 @@ interpreted as symbol \"category\".  Example::
     (init . hls--math-init)
     (get-line . buffer-substring) ; default is `buffer-substring-no-properties'
     (candidates-in-buffer)
-    (display-to-real . (lambda (c) (substring c 1)))
+    (display-to-real . read)
     (action . insert)))
 
 ;;;###autoload
