@@ -156,6 +156,11 @@ def generate_images(directory, resize=(50, 25)):
             resize=resize,
             preamble=group[0]['preamble'],
         )
+        for d in group:
+            with open(os.path.join('build',
+                                   '{0}.keywords'.format(d['name'])),
+                      'w') as f:
+                f.write(d['keys'])
 
 
 def main(args=None):
